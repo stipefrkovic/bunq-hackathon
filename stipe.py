@@ -47,14 +47,15 @@ async def sugested_places(user_id: str):
     # TODO authentication
     suggest_places(user_id)
 
-class PlaceRecord(BaseModel):
-    user_id: int
+class UserlessPlaceRecord(BaseModel):
     place_id: str
     time: datetime
 
 @app.post("/bunq/{user_id}/place_records")
-async def update_user_record(user_id: int, place_record: PlaceRecord):
+async def update_user_record(user_id: int, userless_place_record: UserlessPlaceRecord):
     global all_place_records
-    add_place_record = pd.DataFrame([place_record.dict()])
+    place_record = userless_place_record.dict()
+    place_record['user_id'] = user_id
+    add_place_record = pd.DataFrame([place_record])
     all_place_records = pd.concat([all_place_records, add_place_record], ignore_index=True)
     print(all_place_records)
