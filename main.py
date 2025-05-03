@@ -101,19 +101,21 @@ def put_place_record(user_id: int, description: str):
     add_place_record = pd.DataFrame([place_record])
     all_place_records = pd.concat([all_place_records, add_place_record], ignore_index=True)
 
-@app.put("/bunq/{user_id}/place_records")
-async def update_user_record(user_id: int, payment: Dict):
+# @app.put("/bunq/{user_id}/place_records")
+def update_user_record(user_id: int, payment: Dict):
     payment_description = payment['description']
     put_place_record(user_id, payment_description)
     
 
-@app.post("/bunq/place_records")
-async def get_place_records():
+# @app.post("/bunq/place_records")
+def get_place_records():
     with open('data/payments.json', 'r') as f:
         data = json.load(f)
     for payment in data:
         put_place_record(payment['user_id'], payment['description'])
     print(all_place_records)
+
+_ = get_place_records()
 
 ################# RAG ##################
 
@@ -169,7 +171,7 @@ def personal_rag(locations, count):
     {context}
 
     Recommend the top {count} most similar candidate locations. Return their [id] and a short reason.
-    Provide a recommendation even if there is only a partial match.
+    Provide a recommendation even if there is only a partial match. Please do not provide duplicate recommendations.
 
     Format:
     1. [id] - Reason
@@ -204,18 +206,14 @@ def personal_rag(locations, count):
         primary_text = f"{primary['category']} {primary['price_level']} {' '.join(primary['reviews'])}"
         result = graph.invoke({"question": primary_text, "context": [], "answer": "", "count": str(count)})
 
-        recommended_ids = re.findall(r"\[(.*?)\]", result["answer"])
+        recommended_ids = re.findall(r"\[(.*?)\]", result["answer"])[:count]
+        # print(recommended_ids)
         # recommended_locations = [location_lookup[loc_id] for loc_id in recommended_ids if loc_id in location_lookup]
-
-        recommended_places = [gmaps_place_index[id] for id in recommended_ids]
-
+        # print(result['answer'])
         matches = re.split(r'\n?\d+\.\s+', result['answer'])
-
-        # The first element is the intro text before the list
         intro = matches[0].strip()
-
-        # The rest are the individual recommendations
-        recommendations = [entry.strip() for entry in matches[1:] if entry.strip()]
+        recommendations = [entry[32:entry.find('.')].strip() for entry in matches[1:]]
+        print(recommendations)
 
         names = [gmaps_place_index[id]['result']['name'] for id in recommended_ids]
         short_summaries = recommendations
@@ -224,14 +222,14 @@ def personal_rag(locations, count):
         # print(gmaps_place_index[recommended_ids[0]].keys())
         coordinates = [gmaps_place_index[id]['result']['geometry']['location'] for id in recommended_ids]
         place_types = [gmaps_place_index[id]['result']['types'][0] for id in recommended_ids]
-        rec_types = [2 for _ in recommended_ids]
+        rec_types = ['related' for _ in recommended_ids]
         rag_info_ids = [0 for _ in recommended_ids]
 
         json_list = []
         for idx, name in enumerate(names):
             json_list.append({
                 "name": names[idx],
-                "short_summary": short_summaries[idx],
+                "short_summary": short_summaries[idx].strip() if idx < len(short_summaries) else "RAG/REGEX Error",
                 "maps_google_link": maps_google_links[idx],
                 "photos": photoss[idx],
                 "coordinates": tuple(coordinates[idx].values()),
