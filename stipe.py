@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 import pandas as pd
+from pydantic import BaseModel
+from datetime import datetime
 
 app = FastAPI()
 
@@ -28,16 +30,31 @@ data = [
     {"user_id": 5, "place_id": "D", "time": "2025-05-03 14:00:00"},
     {"user_id": 5, "place_id": "D", "time": "2025-05-03 18:00:00"},
 ]
-all_user_records = pd.DataFrame(data)
+all_place_records = pd.DataFrame(data)
 
 def suggest_places(user_id):
     # TODO implement fail to auth?
-    user_records = all_user_records[all_user_records['user_id'] == int(user_id)]
+    user_records = all_place_records[all_place_records['user_id'] == int(user_id)]
     # print(all_user_records, user_records, type(user_id), all_user_records['user_id'])
-    place_id_hist = user_records['place_id'].value_counts().to_dict()
-    print(place_id_hist)
+    places_hist = user_records['place_id'].value_counts()
+    first_place = places_hist.idxmax()
+    candidate_people = all_place_records[(all_place_records['user_id'] != int(user_id)) & (all_place_records['place_id'] == first_place)]['user_id'].unique()
+    candidate_places_hist = all_place_records[(all_place_records['user_id'].isin(candidate_people)) & (all_place_records['place_id'] != first_place)]['place_id'].value_counts()
+    print(candidate_places_hist.tolist())
 
 @app.get("/bunq/{user_id}/suggested_places")
-def sugested_places(user_id: str):
+async def sugested_places(user_id: str):
     # TODO authentication
     suggest_places(user_id)
+
+class PlaceRecord(BaseModel):
+    user_id: int
+    place_id: str
+    time: datetime
+
+@app.post("/bunq/{user_id}/place_records")
+async def update_user_record(user_id: int, place_record: PlaceRecord):
+    global all_place_records
+    add_place_record = pd.DataFrame([place_record.dict()])
+    all_place_records = pd.concat([all_place_records, add_place_record], ignore_index=True)
+    print(all_place_records)
