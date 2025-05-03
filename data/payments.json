@@ -21,15 +21,23 @@
     },
     {
         "user_id": "102",
+        "description": "Hoopman Irish Pub, Amsterdam"
+    },
+    {
+        "user_id": "102",
+        "description": "Aran Irish Pub Amsterdam"
+    },
+    {
+        "user_id": "102",
+        "description": "Mulligan's Irish Music Bar, Amsterdam"
+    },
+    {
+        "user_id": "102",
         "description": "UNIQLO Koningsplein"
     },
     {
         "user_id": "102",
         "description": "Casa di David Singel"
-    },
-    {
-        "user_id": "102",
-        "description": "Mulligan's Irish Music Bar, Amsterdam"
     },
     {
         "user_id": "103",
@@ -46,6 +54,14 @@
     {
         "user_id": "104",
         "description": "Sojubar Amsterdam"
+    },
+    {
+        "user_id": "104",
+        "description": "Ladybird Fried Chicken Amsterdam"
+    },
+    {
+        "user_id": "104",
+        "description": "The Chicken Bar Amsterdam"
     },
     {
         "user_id": "104",
