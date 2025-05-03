@@ -21,7 +21,11 @@ TARGET_USER_PLACE_NUM = 3
 
 app = FastAPI()
 
-all_place_records = pd.DataFrame()
+all_place_records = pd.DataFrame({
+    'user_id': pd.Series(dtype='int32'),
+    'place_id': pd.Series(dtype='string'),
+    'time': pd.Series(dtype='datetime64[ns]')
+})
 gmaps_place_index = {}
 
 @app.get("/bunq/auth")
@@ -31,13 +35,17 @@ def authentification(username: str, password: str) -> int:
 @app.get("/bunq/{user_id}/suggested_places")
 async def sugested_places(user_id: str):
     # TODO authentication
+    print('======================\n', all_place_records, all_place_records.dtypes)
+    # print(all_place_records['user_id'].dtype, type(int(user_id)))
     user_records = all_place_records[all_place_records['user_id'] == int(user_id)]
+    print(user_records)
     # print(all_user_records, user_records, type(user_id), all_user_records['user_id'])
     places_hist = user_records['place_id'].value_counts()
+    print(places_hist)
     first_place = places_hist.idxmax()
     candidate_people = all_place_records[(all_place_records['user_id'] != int(user_id)) & (all_place_records['place_id'] == first_place)]['user_id'].unique()
     candidate_places_hist = all_place_records[(all_place_records['user_id'].isin(candidate_people)) & (all_place_records['place_id'] != first_place)]['place_id'].value_counts()
-    print(candidate_places_hist.index.tolist())
+    return candidate_places_hist.index.tolist()
 
 
 def put_place_record(user_id: int, description: str):
@@ -47,8 +55,8 @@ def put_place_record(user_id: int, description: str):
     place = gmaps.place(place_id)
     gmaps_place_index[place_id] = place
     place_record = {
-        'user_id': user_id,
-        'place_id': place_id,
+        'user_id': int(user_id),
+        'place_id': str(place_id),
         'time': datetime.now()
     }
     add_place_record = pd.DataFrame([place_record])
@@ -56,14 +64,12 @@ def put_place_record(user_id: int, description: str):
 
 @app.put("/bunq/{user_id}/place_records")
 async def update_user_record(user_id: int, payment: Dict):
-    global all_place_records
     payment_description = payment['description']
     put_place_record(user_id, payment_description)
     
 
 @app.post("/bunq/place_records")
 async def get_place_records():
-    global all_place_records
     with open('data/payments.json', 'r') as f:
         data = json.load(f)
     for payment in data:

@@ -1,66 +1,66 @@
 [
     {
-        "user_id": "alice_wonder",
+        "user_id": "101",
         "description": "Molly Malone's Irish Pub, Amsterdam"
     },
     {
-        "user_id": "alice_wonder",
+        "user_id": "101",
         "description": "Molly Malone's Irish Pub, Amsterdam"
     },
     {
-        "user_id": "alice_wonder",
+        "user_id": "101",
         "description": "Molly Malone's Irish Pub, Amsterdam"
     },
     {
-        "user_id": "bob_builder",
+        "user_id": "102",
         "description": "Molly Malone's Irish Pub, Amsterdam"
     },
     {
-        "user_id": "bob_builder",
+        "user_id": "102",
         "description": "o'reilly's Amsterdam"
     },
     {
-        "user_id": "bob_builder",
+        "user_id": "102",
         "description": "UNIQLO Koningsplein"
     },
     {
-        "user_id": "bob_builder",
+        "user_id": "102",
         "description": "Casa di David Singel"
     },
     {
-        "user_id": "bob_builder",
+        "user_id": "102",
         "description": "Mulligan's Irish Music Bar, Amsterdam"
     },
     {
-        "user_id": "charlie_chap",
+        "user_id": "103",
         "description": "Sojubar Amsterdam"
     },
     {
-        "user_id": "charlie_chap",
+        "user_id": "103",
         "description": "Sojubar Amsterdam"
     },
     {
-        "user_id": "charlie_chap",
+        "user_id": "103",
         "description": "Sojubar Amsterdam"
     },
     {
-        "user_id": "diana_prince",
+        "user_id": "104",
         "description": "Sojubar Amsterdam"
     },
     {
-        "user_id": "diana_prince",
+        "user_id": "104",
         "description": "Hongdae Amsterdam"
     },
     {
-        "user_id": "diana_prince",
+        "user_id": "104",
         "description": "Gangnam Chicken Amsterdam West"
     },
     {
-        "user_id": "diana_prince",
+        "user_id": "104",
         "description": "Domino's Pizza Amsterdam Overtoom"
     },
     {
-        "user_id": "diana_prince",
+        "user_id": "104",
         "description": "Burgerbar Kolksteeg"
     }
 ]
