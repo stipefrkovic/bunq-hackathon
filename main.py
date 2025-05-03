@@ -8,6 +8,7 @@ import googlemaps
 from dotenv import load_dotenv
 import os
 from typing import Dict
+import json
 
 app = FastAPI()
 
@@ -20,29 +21,7 @@ TARGET_USER_PLACE_NUM = 3
 
 app = FastAPI()
 
-place_records_data = [
-    {"user_id": 1, "place_id": "A", "time": "2025-05-03 08:30:00"},
-    {"user_id": 1, "place_id": "A", "time": "2025-05-03 05:30:00"},
-    
-    {"user_id": 2, "place_id": "A", "time": "2025-05-03 10:30:00"},
-    {"user_id": 2, "place_id": "A", "time": "2025-05-03 07:00:00"},
-    {"user_id": 2, "place_id": "B", "time": "2025-05-03 03:00:00"},
-    {"user_id": 2, "place_id": "B", "time": "2025-05-03 04:00:00"},
-    
-    {"user_id": 3, "place_id": "A", "time": "2025-05-03 10:00:00"},
-    {"user_id": 3, "place_id": "B", "time": "2025-05-03 10:00:00"},
-    {"user_id": 3, "place_id": "C", "time": "2025-05-03 10:00:00"},
-
-    {"user_id": 4, "place_id": "B", "time": "2025-05-03 04:00:00"},
-    {"user_id": 4, "place_id": "B", "time": "2025-05-03 02:00:00"},
-    {"user_id": 4, "place_id": "C", "time": "2025-05-03 10:00:00"},
-
-    {"user_id": 5, "place_id": "B", "time": "2025-05-03 04:00:00"},
-    {"user_id": 5, "place_id": "B", "time": "2025-05-03 11:00:00"},
-    {"user_id": 5, "place_id": "D", "time": "2025-05-03 14:00:00"},
-    {"user_id": 5, "place_id": "D", "time": "2025-05-03 18:00:00"},
-]
-all_place_records = pd.DataFrame(place_records_data)
+all_place_records = pd.DataFrame()
 gmaps_place_index = {}
 
 @app.get("/bunq/auth")
@@ -61,12 +40,9 @@ async def sugested_places(user_id: str):
     print(candidate_places_hist.index.tolist())
 
 
-@app.post("/bunq/{user_id}/place_records")
-async def update_user_record(user_id: int, payment: Dict):
+def put_place_record(user_id: int, description: str):
     global all_place_records
-    print(payment)
-    payment_description = payment['description']
-    geocode_result = gmaps.find_place(payment_description, input_type='textquery')
+    geocode_result = gmaps.find_place(description, input_type='textquery')
     place_id = geocode_result['candidates'][0]['place_id']
     place = gmaps.place(place_id)
     gmaps_place_index[place_id] = place
@@ -77,4 +53,19 @@ async def update_user_record(user_id: int, payment: Dict):
     }
     add_place_record = pd.DataFrame([place_record])
     all_place_records = pd.concat([all_place_records, add_place_record], ignore_index=True)
+
+@app.put("/bunq/{user_id}/place_records")
+async def update_user_record(user_id: int, payment: Dict):
+    global all_place_records
+    payment_description = payment['description']
+    put_place_record(user_id, payment_description)
+    
+
+@app.post("/bunq/place_records")
+async def get_place_records():
+    global all_place_records
+    with open('data/payments.json', 'r') as f:
+        data = json.load(f)
+    for payment in data:
+        put_place_record(payment['user_id'], payment['description'])
     print(all_place_records)
