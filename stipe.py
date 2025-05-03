@@ -40,7 +40,7 @@ def suggest_places(user_id):
     first_place = places_hist.idxmax()
     candidate_people = all_place_records[(all_place_records['user_id'] != int(user_id)) & (all_place_records['place_id'] == first_place)]['user_id'].unique()
     candidate_places_hist = all_place_records[(all_place_records['user_id'].isin(candidate_people)) & (all_place_records['place_id'] != first_place)]['place_id'].value_counts()
-    print(candidate_places_hist.tolist())
+    print(candidate_places_hist.index.tolist())
 
 @app.get("/bunq/{user_id}/suggested_places")
 async def sugested_places(user_id: str):
