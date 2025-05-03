@@ -20,8 +20,6 @@ gmaps = googlemaps.Client(key=GMAPS_API_KEY)
 SRC_USER_PLACE_NUM = 3
 TARGET_USER_PLACE_NUM = 3
 
-app = FastAPI()
-
 all_place_records = pd.DataFrame({
     'user_id': pd.Series(dtype='int32'),
     'place_id': pd.Series(dtype='string'),
