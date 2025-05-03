@@ -2,7 +2,7 @@
 
 **Bunq Hot Spots**
 
-This is the back-end application created in the 6th edition of the Bunq Hackathon. The main features are authentication, bank payment record matching and RAG/LLM-powered _experience_suggestions.
+This is the back-end application of _Bunq Hot Spots _created in the 6th edition of the Bunq Hackathon. The main features are authentication, bank payment record matching and RAG/LLM-powered _experience_suggestions.
  
 ## Setup
 
