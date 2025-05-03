@@ -200,10 +200,33 @@ def personal_rag(locations, count):
         # The rest are the individual recommendations
         recommendations = [entry.strip() for entry in matches[1:] if entry.strip()]
 
-        return JSONResponse({
-            "recommended_ids": recommended_ids,
-            "recommended_places": recommended_places,
-            "raw_answer": recommendations
-        })
+        names = [gmaps_place_index[id]['result']['name'] for id in recommended_ids]
+        short_summaries = recommendations
+        maps_google_links = [gmaps_place_index[id]['result']['url'] for id in recommended_ids]
+        photoss = [0 for _ in recommended_ids]
+        # print(gmaps_place_index[recommended_ids[0]].keys())
+        coordinates = [gmaps_place_index[id]['result']['geometry']['location'] for id in recommended_ids]
+        place_types = [gmaps_place_index[id]['result']['types'][0] for id in recommended_ids]
+        rec_types = [2 for _ in recommended_ids]
+        rag_info_ids = [0 for _ in recommended_ids]
+
+        json_list = []
+        for idx, name in enumerate(names):
+            json_list.append({
+                "name": names[idx],
+                "short_summary": short_summaries[idx],
+                "maps_google_link": maps_google_links[idx],
+                "photos": photoss[idx],
+                "coordinates": tuple(coordinates[idx].values()),
+                "place_type": place_types[idx],
+                "rec_type": rec_types[idx],
+                "rag_info_id": rag_info_ids[idx]
+                })
+        return json_list
+        # return JSONResponse({
+        #     "recommended_ids": recommended_ids,
+        #     "recommended_places": recommended_places,
+        #     "raw_answer": recommendations
+        # })
     
     return recommend(count)
