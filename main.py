@@ -10,6 +10,7 @@ import os
 from typing import Dict
 import json
 import pprint
+import re
 
 import re
 import uuid
@@ -37,9 +38,6 @@ NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY")
 # print(NVIDIA_API_KEY, 'hello')
 
 gmaps = googlemaps.Client(key=GMAPS_API_KEY)
-
-SRC_USER_PLACE_NUM = 3
-TARGET_USER_PLACE_NUM = 3
 
 all_place_records = pd.DataFrame({
     'user_id': pd.Series(dtype='int32'),
@@ -112,20 +110,25 @@ def format_locations(gmaps_points):
     locations = []
     for idx, point in enumerate(gmaps_points):
         review_texts = []
-        for review in point['result']['reviews']:
+        for review in point['result']['reviews'][:1]:
             review_texts.append(review['text'])
         pprint.pprint(point)
         locations.append({
-            "name": point['result']['name'],
-            "price_level": point['result'].get('price_level', 0),
             "id": point['result']['place_id'],
+            "name": point['result']['name'],
             "category": point['result']['types'][0], 
+            "price_level": point['result'].get('price_level', 2),
             "reviews": review_texts,
         })
     return locations
 
 def personal_rag(locations, count):
+    print(locations)
     llm = init_chat_model("meta/llama3-70b-instruct", model_provider="nvidia")
+    embeddings = NVIDIAEmbeddings(model="NV-Embed-QA")
+    embedding_dim = len(embeddings.embed_query("hello world"))
+    index = faiss.IndexFlatL2(embedding_dim)
+    vector_store = FAISS(embedding_function=embeddings, index=index, docstore=InMemoryDocstore(), index_to_docstore_id={})
 
     primary = locations[0]
     secondaries = locations[1:]
@@ -135,6 +138,8 @@ def personal_rag(locations, count):
     for loc in secondaries:
         text = f"[{loc['id']}] {loc['name']} {loc['category']} {loc['price_level']} {' '.join(loc['reviews'])}"
         documents.append(Document(page_content=text))
+
+    vector_store.add_documents(documents=documents)
 
     prompt = PromptTemplate(
         input_variables=["question", "context", "count"],
@@ -146,20 +151,22 @@ def personal_rag(locations, count):
     Candidate Locations:
     {context}
 
-    Recommend the top {count} similar locations. Return their [id] and a short reason.
-    Give a response even if the location does not match fully.
+    Recommend the top {count} most similar candidate locations. Return their [id] and a short reason.
+    Provide a recommendation even if there is only a partial match.
 
     Format:
-    1. [location_id] - Reason
-    2. [location_id] - Reason
+    1. [id] - Reason
+    2. [id] - Reason
     ...
     """
     )
 
     def retrieve(state: State):
-        retrieved_docs = [Document(
-            page_content=f"[{loc['id']}] {loc['name']} {loc['category']} {loc['price_level']} {' '.join(loc['reviews'])}")
-                        for loc in location_lookup.values()]
+        retrieved_docs = vector_store.similarity_search(state["question"], k=5)
+        count = int(state.get("count", 2))
+        # retrieved_docs = [Document(
+            # page_content=f"[{loc['id']}] {loc['name']} {loc['category']} {loc['price_level']} {' '.join(loc['reviews'])}")
+                        # for loc in location_lookup.values()]
         return {"context": retrieved_docs}
 
     def generate(state: State):
@@ -183,9 +190,20 @@ def personal_rag(locations, count):
         recommended_ids = re.findall(r"\[(.*?)\]", result["answer"])
         # recommended_locations = [location_lookup[loc_id] for loc_id in recommended_ids if loc_id in location_lookup]
 
+        recommended_places = [gmaps_place_index[id] for id in recommended_ids]
+
+        matches = re.split(r'\n?\d+\.\s+', result['answer'])
+
+        # The first element is the intro text before the list
+        intro = matches[0].strip()
+
+        # The rest are the individual recommendations
+        recommendations = [entry.strip() for entry in matches[1:] if entry.strip()]
+
         return JSONResponse({
-            # "recommended_ids": recommended_ids,
-            "raw_answer": result["answer"]
+            "recommended_ids": recommended_ids,
+            "recommended_places": recommended_places,
+            "raw_answer": recommendations
         })
     
     return recommend(count)

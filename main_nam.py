@@ -92,10 +92,11 @@ Format:
 
 
 def retrieve(state: State):
-    # retrieve_docs = vector_store.similarity_search(state["question"], k=5)
-    retrieved_docs = [Document(
-        page_content=f"[{loc['id']}] {loc['name']} {loc['category']} {loc['price_level']} {' '.join(loc['reviews'])} {' '.join(loc['tags'])}")
-                      for loc in location_lookup.values()]
+    retrieved_docs = vector_store.similarity_search(state["question"], k=5)
+    count = int(state.get("count", count))
+    # retrieved_docs = [Document(
+    #     page_content=f"[{loc['id']}] {loc['name']} {loc['category']} {loc['price_level']} {' '.join(loc['reviews'])} {' '.join(loc['tags'])}")
+    #                   for loc in location_lookup.values()]
     return {"context": retrieved_docs}
 
 def generate(state: State):
