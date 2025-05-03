@@ -30,7 +30,21 @@ from langgraph.graph import START, StateGraph
 from langgraph.types import interrupt
 from typing_extensions import TypedDict
 
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI()
+
+origins = [
+    "http://localhost:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,              # or ["*"] for all origins
+    allow_credentials=True,
+    allow_methods=["*"],                # allow all HTTP methods
+    allow_headers=["*"],                # allow all headers
+)
 
 load_dotenv()
 GMAPS_API_KEY = os.getenv("GOOGLEMAPS_API_KEY", "Default Value")
