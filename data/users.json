@@ -1,0 +1,22 @@
+[
+    {
+      "id": 101,
+      "username": "alice_wonder",
+      "password": "verySecurePassword1!"
+    },
+    {
+      "id": 102,
+      "username": "bob_builder",
+      "password": "canWeFixIt?YesWeCan!"
+    },
+    {
+      "id": 103,
+      "username": "charlie_chap",
+      "password": "aDayWithoutLaughterIsWasted"
+    },
+    {
+      "id": 104,
+      "username": "diana_prince",
+      "password": "lass0OfTruth!#"
+    }
+  ]
