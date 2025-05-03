@@ -62,7 +62,10 @@ gmaps_place_index = {}
 
 @app.get("/bunq/auth")
 def authentification(username: str, password: str) -> int:
-    return auth.verify_users_credentials(username, password).id
+    user = auth.verify_users_credentials(username, password)
+    if user is not None:
+        return user.id
+    return -1
 
 @app.get("/bunq/{user_id}/suggested_places/{count}")
 async def sugested_places(user_id: str, count: int):
